@@ -1,0 +1,188 @@
+---
+title: "Graphs for TxGraffiti"
+author: "K Shoemaker"
+date: "2/11/2021"
+output: 
+  html_document: 
+    fig_height: 3
+    fig_width: 4
+---
+
+```{r setup, include=FALSE, message=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+Load in the data, note that `NA` is 1000000
+```{r paged.print=TRUE}
+# load in data
+graph_data <- read.csv("test_graph_data_with_index2.csv", na.strings = "1000000")
+glimpse(graph_data)
+
+```
+
+Set up some variables about the variables
+```{r}
+# names and count of numeric variables
+numeric_vars <- colnames(graph_data)[c(2:34,46)]
+n_num <- length(numeric_vars)
+
+# names and count of boolean variables
+binary_vars <- colnames(graph_data)[35:45]
+n_bin <- length(binary_vars)
+```
+
+# dot plots, factorized
+
+```{r}
+n_sample <- sample(numeric_vars, 2, replace = F)
+b_sample <- sample(binary_vars, 2, replace = F)
+
+subset_data <- graph_data %>% select(n_sample, b_sample)
+this_title <- paste(n_sample[1], "vs.", n_sample[2])
+this_subtitle <- paste0("Rows: factored by ", b_sample[1], ". Cols: factored by ", b_sample[2])
+ggplot(subset_data, aes(x = subset_data[,1], y = subset_data[,2])) + geom_point() + facet_grid(subset_data[,3] ~ subset_data[,4])  + labs(x = n_sample[1], y = n_sample[2], title = this_title, subtitle = this_subtitle) 
+```
+
+
+
+# New data
+
+```{r}
+graph_data_2 <- read.csv("test_graph_data.csv", na.strings = "1000000")
+```
+
+```{r}
+# setup
+# names and count of numeric variables
+numeric_vars <- colnames(graph_data_2)[2:52]
+n_num <- length(numeric_vars)
+
+# names and count of boolean variables
+binary_vars <- colnames(graph_data_2)[53:71]
+n_bin <- length(binary_vars)
+```
+
+```{r}
+n_sample <- sample(numeric_vars, 2, replace = F)
+b_sample <- sample(binary_vars, 2, replace = F)
+
+subset_data <- graph_data_2 %>% select(n_sample, b_sample)
+this_title <- paste(n_sample[1], "vs.", n_sample[2])
+this_subtitle <- paste0("Rows: factored by ", b_sample[1], ". Cols: factored by ", b_sample[2])
+ggplot(subset_data, aes(x = subset_data[,1], y = subset_data[,2])) + geom_point() + facet_grid(subset_data[,3] ~ subset_data[,4])  + labs(x = n_sample[1], y = n_sample[2], title = this_title, subtitle = this_subtitle) 
+```
+
+
+\newpage
+
+# Old Things
+
+Several viz options, in no particular order. Load in and look at data first, note that the `NA` character is `1000000`. 
+
+
+
+# Density plots (emperical distributions)
+
+First option would be just a density plot of these ratios you've referenced. My first thought was to do histograms, but since it's all integer values, that looks choppy and bad. 
+
+Example 1a: order over power domination number, histogram 
+
+```{r}
+
+graph_data %>% 
+  mutate(ratio = order / power_domination_number) %>%  
+  ggplot(aes(x = ratio)) + geom_histogram(bins = 18)
+
+
+
+```
+
+Example 1b: order over power domination number, density plot
+
+```{r}
+
+graph_data %>% 
+  mutate(ratio = order / power_domination_number) %>%  
+  ggplot(aes(x = ratio)) + 
+  geom_density() + 
+  labs(title = "Order over PowerDomination")
+
+```
+
+# Density plots, by group 
+
+Same plot as previous, but divided by one of the binary classifications.
+
+Example 2a: order over power domination number, density plot, divided by whether it's cubic or not, overlaid
+
+
+```{r}
+graph_data %>% 
+  mutate(ratio = order / power_domination_number) %>%  
+  ggplot(aes(x = ratio, color = is_cubic, fill = is_cubic)) +
+  geom_density(alpha = 0.5) + 
+  labs(title = "Order over PowerDomination", subtitle =  "Divided by Cubic")
+  
+```
+
+Example 2b: order over power domination number, density plot, divided by whether it's cubic or not, split up
+
+```{r}
+graph_data %>% 
+  mutate(ratio = order / power_domination_number) %>%  
+  ggplot(aes(x = ratio, color = is_cubic, fill = is_cubic)) +
+  geom_density(alpha = 0.5) + 
+  facet_wrap(. ~is_cubic) +
+  labs(title = "Order over PowerDomination", subtitle =  "Divided by Cubic")
+  
+```
+
+# Scatter plots
+
+These are tricky, since they all just stack on top of each other. 
+
+```{r}
+graph_data %>% 
+  ggplot(aes(x = order, y = power_domination_number, color = is_cubic)) +
+  geom_point(alpha = 0.5) + 
+  labs(title = "Order vs PowerDomination", subtitle =  "Colored by Cubic")
+```
+
+You can add in a little "jitter" to make them space out a little to see what's happening, but I still don't love it. 
+
+
+```{r}
+graph_data %>% 
+  ggplot(aes(x = order, y = power_domination_number, color = is_cubic)) +
+  geom_jitter(alpha = 0.5, width = 0.1, height = 0.1) + 
+  labs(title = "Order vs PowerDomination", subtitle =  "Colored by Cubic, jittered")
+```
+
+If we do a heatmap, we'd also need to facet... 
+
+```{r}
+# note: made these an ordered factor, might want to do this for everything for nicer graphing. 
+graph_data %>% 
+  mutate(order_fac = factor(order, ordered = T), power_domination_number_fac = factor(power_domination_number, ordered = T)) %>%
+  ggplot(aes(x = order_fac, y = power_domination_number_fac)) +
+  geom_bin2d(bins = c(15,3)) + facet_wrap(. ~ is_cubic, nrow = 2) +
+  labs(title = "Order vs PowerDomination", subtitle =  "Colored by Cubic, jittered")
+```
+
+> did this on accident, thought it looked cool. lol. 
+
+```{r}
+graph_data %>% 
+  ggplot(aes(x = order, y = power_domination_number)) +
+  geom_polygon() + facet_wrap(. ~ is_cubic, nrow = 2)
+  labs(title = "Order vs PowerDomination", subtitle =  "Colored by Cubic, jittered")
+```
+
+# Viz of graph properties
+
+> the independence number is <= number of vertices / 2, what are the properties of those graphs
+
+```{r}
+
+

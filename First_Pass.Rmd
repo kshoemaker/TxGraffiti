@@ -1,0 +1,169 @@
+---
+title: "First Pass - Graphs for TxGraffiti"
+author: "K. Shoemaker"
+date: "2/25/2021"
+output: 
+  html_document: 
+    fig_height: 6
+    fig_width: 6
+---
+
+```{r setup, include=FALSE, message=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = F)
+library(tidyverse)
+```
+
+
+```{r paged.print=TRUE}
+# load in data
+graph_data <- read.csv("test_graph_data_with_index2.csv", na.strings = "1000000")
+# glimpse(graph_data)
+
+```
+
+Set up some variables about the variables
+```{r}
+
+```
+
+# dot plots, factorized
+
+```{r, echo = F}
+plot_old <- function() {
+  # names and count of numeric variables
+  numeric_vars <- colnames(graph_data)[c(2:34,46)]
+  n_num <- length(numeric_vars)
+  
+  # names and count of boolean variables
+  binary_vars <- colnames(graph_data)[35:45]
+  n_bin <- length(binary_vars)
+  
+  n_sample <- sample(numeric_vars, 2, replace = F)
+  b_sample <- sample(binary_vars, 2, replace = F)
+  
+  subset_data <- graph_data %>% select(all_of(n_sample), all_of(b_sample))
+  this_title <- paste(n_sample[1], "vs.", n_sample[2])
+  this_subtitle <- paste0("Rows: factored by ", b_sample[1], ". Cols: factored by ", b_sample[2])
+  ggplot(subset_data, aes(x = subset_data[,1], y = subset_data[,2])) + 
+    geom_point() + facet_grid(subset_data[,3] ~ subset_data[,4])  + 
+    labs(x = n_sample[1], y = n_sample[2], title = this_title, subtitle = this_subtitle) 
+}
+```
+
+
+
+```{r, echo = F}
+graph_data_2 <- read.csv("test_graph_data.csv", na.strings = "1000000")
+```
+
+
+```{r, echo = F}
+plot_new <- function() {
+  # setup
+  # names and count of numeric variables
+  numeric_vars <- colnames(graph_data_2)[2:52]
+  n_num <- length(numeric_vars)
+  
+  # names and count of boolean variables
+  binary_vars <- colnames(graph_data_2)[53:71]
+  n_bin <- length(binary_vars)
+  n_sample <- sample(numeric_vars, 2, replace = F)
+  b_sample <- sample(binary_vars, 2, replace = F)
+  
+  subset_data <- graph_data_2 %>% select(all_of(n_sample), all_of(b_sample))
+  this_title <- paste(n_sample[1], "vs.", n_sample[2])
+  this_subtitle <- paste0("Rows: factored by ", b_sample[1], ". Cols: factored by ", b_sample[2])
+  ggplot(subset_data, aes(x = subset_data[,1], y = subset_data[,2])) + 
+    geom_point() + facet_grid(subset_data[,3] ~ subset_data[,4])  + 
+    labs(x = n_sample[1], y = n_sample[2], title = this_title, subtitle = this_subtitle) 
+}
+```
+
+```{r}
+plot_new_index <- function() {
+  # setup
+  # names and count of numeric variables ONLY the ones that contain the word "index
+  numeric_vars <- colnames(graph_data_2)[str_detect(colnames(graph_data_2), "index")]
+  n_num <- length(numeric_vars)
+  
+  # names and count of boolean variables
+  binary_vars <- colnames(graph_data_2)[53:71]
+  n_bin <- length(binary_vars)
+  n_sample <- sample(numeric_vars, 2, replace = F)
+  b_sample <- sample(binary_vars, 2, replace = F)
+  
+  subset_data <- graph_data_2 %>% select(all_of(n_sample), all_of(b_sample))
+  this_title <- paste(n_sample[1], "vs.", n_sample[2])
+  this_subtitle <- paste0("Rows: factored by ", b_sample[1], ". Cols: factored by ", b_sample[2])
+  ggplot(subset_data, aes(x = subset_data[,1], y = subset_data[,2])) + 
+    geom_point() + facet_grid(subset_data[,3] ~ subset_data[,4])  + 
+    labs(x = n_sample[1], y = n_sample[2], title = this_title, subtitle = this_subtitle) 
+}
+
+plot_new_index()
+plot_new_index()
+plot_new_index()
+plot_new_index()
+plot_new_index()
+plot_new_index()
+plot_new_index()
+plot_new_index()
+plot_new_index()
+plot_new_index()
+plot_new_index()
+```
+
+
+```{r}
+max_vals <- graph_data_2  %>% select(contains("index")) %>% summarise(across(everything(), max, na.rm = T))
+glimpse(max_vals)
+glimpse(max_vals/2)
+
+
+graph_data_2 %>% ggplot(aes(x = randic_index, fill = is_cubic)) + geom_density(alpha = 0.5)
+graph_data_2 %>% ggplot(aes(x = randic_index, fill = is_regular)) + geom_density(alpha = 0.5)
+graph_data_2 %>% ggplot(aes(x = randic_index, fill = is_planar)) + geom_density(alpha = 0.5)
+graph_data_2 %>% ggplot(aes(x = randic_index, fill = is_bull_free)) + geom_density(alpha = 0.5)
+graph_data_2 %>% ggplot(aes(x = randic_index, fill = is_strongly_regular)) + geom_density(alpha = 0.5)
+graph_data_2 %>% filter(is_strongly_regular == T) %>% arrange(desc(randic_index)) %>% select(randic_index)
+
+table(graph_data_2$randic_index > 5, graph_data_2$is_strongly_regular)
+
+graph_data_2 %>% ggplot(aes(x = first_zagreb_index, fill = is_planar)) + geom_density(alpha = 0.5)
+
+graph_data_2 %>% ggplot(aes(x = CW_disparity)) + geom_density(alpha = 0.5)
+
+```
+# Pairs plots?
+
+```{r}
+library(GGally)
+```
+
+```{r}
+x <- sample(2:20, 6, replace = F)
+graph_data_2 %>%  select(annihilation_number, independence_number) %>%  ggpairs()
+```
+
+```{r}
+numeric_data <- graph_data_2[,2:52]
+numeric_data$girth <- NULL
+heatmap(abs(cor(numeric_data)), Rowv = NA, Colv = NA)
+cor_matrix <- cor(numeric_data)
+which(cor_matrix > 0.99 & cor_matrix < 1, arr.ind = T)
+```
+
+```{r}
+graph_data_2 %>% select(inverse_disparity, CW_disparity) %>% ggpairs()
+graph_data_2 %>% select(irregularity, average_closed_vertex_disparity) %>% ggpairs()
+
+graph_data_2 %>% select(contains("independence"), contains("irregularity"), is_regular) %>% ggpairs(columns = 1:2, aes(color = is_regular))
+
+graph_data_2 %>% group_by(is_regular) %>% summarise(max(irregularity))
+
+graph_data_2 %>% mutate(new = (independence_number - order/2)) %>% ggplot(aes(irregularity, new, color = is_regular)) + geom_point() + facet_wrap( ~is_regular)
+```
+
+```{r}
+graph_data_2 %>% filter( irregularity > 1) %>% count(is_not_K_n)
+```
