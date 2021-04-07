@@ -11,7 +11,7 @@ library(tidyverse)
 ```
 
 ```{r, eval = T}
-data <- read.csv("test_graph_data_with_index2.csv",  na.strings = "1000000")
+data <- read.csv("partial_data_3.csv",  na.strings = "1000000")
 ```
 
 ```{r, eval = T, message=FALSE, warning=FALSE}
@@ -21,21 +21,21 @@ bb <- seq(from = 0.5, to = 12.5, by = 1)
 p_claw <- data %>% filter(is_claw_free == T) %>% 
   ggplot(aes(y = zero_forcing_number, x = vertex_cover_number)) + 
   geom_bin2d(breaks = bb) + 
-  scale_y_continuous(breaks = 1:12, limits = c(0.5,12.25)) + 
+  scale_y_continuous(breaks = 1:8, limits = c(0.5,8.25)) + 
   scale_x_continuous(breaks = 1:9) + 
   labs(x = "Vertex Cover", y = "Zero Forcing")
 
 p_notclaw <- data %>% filter(is_claw_free == F) %>% 
   ggplot(aes(y = zero_forcing_number, x = vertex_cover_number)) + 
   geom_bin2d(breaks = bb)  + 
-  scale_y_continuous(breaks = 1:12, limits = c(0.5,12.25)) + 
+  scale_y_continuous(breaks = 1:8, limits = c(0.5,8.25)) + 
   scale_x_continuous(breaks = 1:9) + 
   labs(x = "Vertex Cover", y = "Zero Forcing")
 
 p_all <- data %>% 
   ggplot(aes(y = zero_forcing_number, x = vertex_cover_number)) + 
   geom_bin2d(breaks = bb)  + 
-  scale_y_continuous(breaks = 1:12, limits = c(0.5,12.25)) + 
+  scale_y_continuous(breaks = 1:8, limits = c(0.5,8.25)) + 
   scale_x_continuous(breaks = 1:9) +   
   labs(x = "Vertex Cover", y = "Zero Forcing")
 ```
@@ -52,7 +52,7 @@ c_all <- cor(data$zero_forcing_number, data$vertex_cover_number)
 c_notclaw <- cor(subset_not$zero_forcing_number, subset_not$vertex_cover_number)
 ```
 
-When considering the larger question of relationships between these graph variables and how they change for different classification labels, the first approach was to assess scatterplots of two randomly chosen numeric variables, labeled or faceted by an additional randomly chosen classification. Thus, when approaching the specific question of the relationship between the zero forcing number and the vertex cover number, the first approach was modeled after this, but with the change to using a heatmap so that the density of the points can be visualized as well. When the two variables (zero forcing number and vertex covering number) are plotted for the two subsets of graphs (claw free and not claw free) in Figure 1, a relationship can be seen in the claw free classification that isn't present in the visualization of the not claw free graph: there are no points present above the line $y = x$ for the claw free graphs. The heatmaps shown in the  Under further inspection, the correlation coefficient is  `r round(c_notclaw,3)` for non-claw-free graphs,  and `r round(c_claw,3)` for claw-free graphs, implying that there is a stronger linear relationship between those two variables for the claw-free graphs than for the non-claw-free graphs. Using a Fisher's z test, the difference is found to be statistically significant with a p-value of 0.0014.
+When considering the larger question of relationships between these graph variables and how they change for different classification labels, the first approach was to assess scatterplots of two randomly chosen numeric variables, labeled or faceted by an additional randomly chosen classification. Thus, when approaching the specific question of the relationship between the zero forcing number and the vertex cover number, the first approach was modeled after this, but with the change to using a heatmap so that the density of the points can be visualized as well. When the two variables (zero forcing number and vertex covering number) are plotted for the two subsets of graphs (claw free and not claw free) in Figure 1, a relationship can be seen in the claw free classification that isn't present in the visualization of the not claw free graph: there are no points present above the line $y = x$ for the claw free graphs. The heatmaps shown in the  Under further inspection, the correlation coefficient is  `r round(c_notclaw,3)` for non-claw-free graphs,  and `r round(c_claw,3)` for claw-free graphs, implying that there is a stronger linear relationship between those two variables for the claw-free graphs than for the non-claw-free graphs. Using a Fisher's z test, the difference is found to be statistically significant with a p-value of < 0.00001.
 
 
 ```{r, eval = T, fig.cap="A comparasion via heatmap", fig.width=7, fig.height=4}
